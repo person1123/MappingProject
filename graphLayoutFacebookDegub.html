@@ -36,6 +36,11 @@ line.link {
    
    
    var fbGroupID = 1429858223938188; //ID of DCC Delta and Epsilon Classes group
+   var ErickaId = 832555320099806;
+   var SarahId = 783029035098729;
+   
+   var nodes = [];
+   var links = [];
    
    function Login()
     {
@@ -43,20 +48,40 @@ line.link {
         FB.login(function(response) {
            if (response.authResponse) 
            {
+           		FB.api('/783029035098729/friends/',function(response){
+           			console.log("aaaah");
+           			console.log(response);
+           		});
                 getUserInfo(); // Get User Information.
  
             } else
             {
              console.log('Authorization failed.');
             }
-         },{scope: 'email'});
+         },{scope: 'user_friends'});
  
     }
     
     function getUserInfo() {
        FB.api(''+fbGroupID+'/members', function(response) {
  
- 		console.log(JSON.stringify(response));
+ 		nodes = response.data;
+ 		console.log(response);
+ 		
+ 		for (var i = 0; i < nodes.length; i++) {
+ 			for (var j = 0; j < i; j++) {
+ 				var count = compare(nodes[i], nodes[j]);
+ 				
+ 				if (count>=0) {
+ 					links.append({source: i,
+ 						target: j,
+ 						strength: count});
+ 				}
+ 			}
+ 		}
+ 		
+ 		//compare(response.data[27],response.data[17]);
+ 		//compare({id: ErickaId, name:"Ecrick"},{id: SarahId, name:"Srah"});
         //response.name       - User Full name
         //response.link       - User Facebook URL
         //response.username   - User name
@@ -64,6 +89,37 @@ line.link {
         //response.email      - User email
  
         });
+   }
+   
+   function compare(user1, user2) {
+   	   var count = -1;
+       FB.api(''+user1.id+'/friends/', function(friends1) {
+       		if (friends1.error)
+       			return;
+              
+       		FB.api(''+user2.id+'/friends/', function(friends2) {
+       			if (friends2.error)
+       				return;
+       			count = 0;
+       			
+       			console.log("f1:");
+       			console.log(friends1);
+       			console.log("f2:");
+       			console.log(friends1);
+       			
+       			for (friend1_idx in friends1.data) {
+       				var friend1 = friends1.data[friend1_idx];
+       				for (friend2_idx in friends2.data) {
+       					var friend2 = friends2.data[friend2_idx];
+       					if (friend1.id==friend2.id) {
+       						//console.log("Shared friend: "+friend1.name);
+       						count++;
+       					}
+       				}
+       			}
+       		});
+       });
+       return count;
    }
    
    function Logout()
