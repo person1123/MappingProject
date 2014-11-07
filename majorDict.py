@@ -1,0 +1,3 @@
+majorDict = {"Aerospace Engineering": [], "Art history": [], "Astronomy": [], "Computer Engineering": [], "Computer Science": [], "Economics": [], 
+"Electrical Engineering": [], "English": [], "Finance": [], "Fire Protection Engineering": [], "Materials Engineering": [], "Materials Science": [], 
+"Mechanical Engineering": [], "Neurobiology": [], "Physics": [], "Physiology": [], "Psychology": [], "Studio Art": [], "Supply Chain": []}

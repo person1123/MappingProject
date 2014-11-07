@@ -82,7 +82,7 @@ class DCCStudent(object):
 
 					# Triggers if minor and otherStudent's major are in the same college/department
 					if minorDesc[0] == otherMajorDesc[0]:
-						matchVal += 075
+						matchVal += 0.75
 
 					else:
 
