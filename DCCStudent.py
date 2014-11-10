@@ -20,7 +20,7 @@ def parseFile(filename):
 			lastName = sections[2]
 			floor = sections[3]
 			dccClass = sections[4]
-			majors = sections[5].lower()
+			majors = sections[5].lower().strip()
 			minor = sections[6].lower()
 			classesList = sections[7]
 			personalityType = sections[8]
@@ -108,7 +108,7 @@ class DCCStudent(object):
 		minorMatchVal = 0.0
 
 		# Triggers if student has a minor
-		if self.minor != "NMD":
+		if self.minor != "nmd":
 			minorDesc = md[self.minor]
 
 			# Iterates through otherStudent's majors and their descriptions
@@ -137,7 +137,7 @@ class DCCStudent(object):
 				minorMatchVal += 1
 
 		# Triggers if otherStudent has a minor
-		if otherStudent.getMinor() != "NMD":
+		if otherStudent.getMinor() != "nmd":
 			otherMinorDesc = md[otherStudent.getMinor()]
 
 			# Iterates through Student's majors and their descriptions
@@ -146,7 +146,7 @@ class DCCStudent(object):
 				majorDesc = md[major]
 
 				# Triggers if otherStudent's minor and Student's major are the same
-				if otherMinor == major:
+				if otherStudent.getMinor() == major:
 					minorMatchVal += 1
 
 				else:
