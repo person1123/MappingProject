@@ -5,3 +5,6 @@ majorDict = {"Aerospace Engineering": ["Engineering", "Exact"], "Art history": [
 "Mechanical Engineering": ["Engineering", "Exact"], "Neurobiology": ["Medicine", "Biological"], "Physics": ["CMNS", "Exact"], 
 "Physiology": ["Medicine", "Biological"], "Psychology": ["BSOS", "Humanities"], "Studio Art": ["ARHU", "Humanities"], 
 "Supply Chain Management": ["Business", "Humanities"]}
+
+def getMajorDict():
+    return majorDict
