@@ -1,3 +1,5 @@
+studentList= []
+
 def parseFile(filename):
 	open(filename, "r")
 	
@@ -182,3 +184,10 @@ class DCCStudent(object):
 		matchVal += compareClasses(self, otherStudent)
 
 		return matchVal
+	
+	def JSONlink(self, otherStudent):
+		str = "{ source:" + studentList.index(self) + ", target:" + studentList.index(otherStudent)
+		str	+= ", strength:" + self.compareTo(otherStudent) + ", major:"+self.compareMajor(otherStudent)
+		str += ", minor:" + self.compareMinor(otherStudent) + ", interest:"+self.compareInterest(otherStudent)
+		str += ", classes:" + self.compareClasses(otherStudent) + "}"
+		
