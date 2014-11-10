@@ -2,6 +2,15 @@
 <meta charset="utf-8">
 <style>
 
+body {
+	height:100%;
+	color:white;
+}
+
+html {
+	height:100%;
+}
+
 .node circle {
   cursor: pointer;
   stroke: #3182bd;
@@ -20,8 +29,15 @@ line.link {
   stroke-width: 1.5px;
 }
 
+body.loading::before {
+	font:30px sans-serif;
+	text-align:center;
+	content: "Loading...";
+}
+
 </style>
-<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<body style="background-color:black">
 	<script>
   window.fbAsyncInit = function() {
     FB.init({
@@ -29,15 +45,11 @@ line.link {
       xfbml      : true,
       version    : 'v2.2'
     });
-     
-	Login();
   };
 
    
    
    var fbGroupID = 1429858223938188; //ID of DCC Delta and Epsilon Classes group
-   var ErickaId = 832555320099806;
-   var SarahId = 783029035098729;
    
    var nodes = [];
    var links = [];
@@ -48,10 +60,9 @@ line.link {
         FB.login(function(response) {
            if (response.authResponse) 
            {
-           		FB.api('/783029035098729/friends/',function(response){
-           			console.log("aaaah");
-           			console.log(response);
-           		});
+           		d3.select("body").attr("class","loading");
+           		d3.select(".loginButton").style("display","none");
+
                 getUserInfo(); // Get User Information.
  
             } else
@@ -66,59 +77,116 @@ line.link {
        FB.api(''+fbGroupID+'/members', function(response) {
  
  		nodes = response.data;
- 		console.log(response);
+ 		console.log(nodes);
  		
- 		for (var i = 0; i < nodes.length; i++) {
- 			for (var j = 0; j < i; j++) {
- 				var count = compare(nodes[i], nodes[j]);
- 				
- 				if (count>=0) {
- 					links.append({source: i,
- 						target: j,
- 						strength: count});
- 				}
- 			}
- 		}
+ 		var friendGroups = [];
  		
- 		//compare(response.data[27],response.data[17]);
- 		//compare({id: ErickaId, name:"Ecrick"},{id: SarahId, name:"Srah"});
-        //response.name       - User Full name
-        //response.link       - User Facebook URL
-        //response.username   - User name
-        //response.id         - id
-        //response.email      - User email
- 
+ 		// processMutualFriends(friendGroups, 0);
+ 		processFriends(friendGroups, 0);
         });
    }
    
-   function compare(user1, user2) {
-   	   var count = -1;
-       FB.api(''+user1.id+'/friends/', function(friends1) {
-       		if (friends1.error)
-       			return;
-              
-       		FB.api(''+user2.id+'/friends/', function(friends2) {
-       			if (friends2.error)
-       				return;
-       			count = 0;
-       			
-       			console.log("f1:");
-       			console.log(friends1);
-       			console.log("f2:");
-       			console.log(friends1);
-       			
-       			for (friend1_idx in friends1.data) {
-       				var friend1 = friends1.data[friend1_idx];
-       				for (friend2_idx in friends2.data) {
-       					var friend2 = friends2.data[friend2_idx];
-       					if (friend1.id==friend2.id) {
-       						//console.log("Shared friend: "+friend1.name);
-       						count++;
-       					}
-       				}
-       			}
-       		});
-       });
+   function removeUnusedNodes() {
+		for (var j = 0; j < nodes.length; j++) {
+			var found = false;
+			for (var k = 0; k < links.length; k++) {
+				if (links[k].source == j || links[k].target == j) {
+					found = true;
+				}
+			}
+			
+			if (!found) {
+				nodes.splice(j,1);
+				j--;
+				
+				for (var k = 0; k < links.length; k++) {
+					if (links[k].source > j) {
+						links[k].source--;
+					}
+					if (links[k].target > j) {
+						links[k].target--;
+					}
+				}
+			}
+		}
+   }
+   
+  function processFriends(friendGroups, i) {
+   		// console.log("i "+i+' '+nodes[i].id+'/friends?access_token=395526550605118|5031077fd8e4dd57ee206b852753c7d2');
+   		if(i < nodes.length) {
+			FB.api(''+nodes[i].id+'/friends?access_token=395526550605118|5031077fd8e4dd57ee206b852753c7d2', function(friends) {
+		   		friendGroups[i] = friends;
+		 		
+		 		if (!friendGroups[i].error) {
+					for (var j = 0; j < i; j++) {
+						for (var k = 0; k < friendGroups[i].data.length; k++) {
+							if (friendGroups[i].data[k].id == nodes[j].id) {
+								links.push({source: i,
+									target: j,
+									strength: 1,
+									type: "friends"});
+								console.log(""+nodes[i].name+", "+nodes[j].name);
+								break;
+							}
+						}
+					}
+		 		}
+		 		
+				processFriends(friendGroups, i+1);
+				});
+		} else {
+			removeUnusedNodes();
+			
+			update();
+       		d3.select("body").attr("class","");
+		}
+   }
+   
+   function processMutualFriends(friendGroups, i) {
+   		// console.log("i "+i+' '+nodes[i].id+'/friends?access_token=395526550605118|5031077fd8e4dd57ee206b852753c7d2');
+   		if(i < nodes.length) {
+			FB.api(''+nodes[i].id+'/friends?access_token=395526550605118|5031077fd8e4dd57ee206b852753c7d2', function(friends) {
+		   		friendGroups[i] = friends;
+		 			
+				for (var j = 0; j < i; j++) {
+					var count = compare(friendGroups[i], friendGroups[j]);
+					
+					if (count>0) {
+						links.push({source: i,
+							target: j,
+							strength: count,
+							type: "mutualfriends"});
+						console.log(""+nodes[i].name+", "+nodes[j].name+": "+count);
+					} else {
+						// console.log("wow");
+					}
+				}
+				processMutualFriends(friendGroups, i+1);
+				});
+		} else {
+			removeUnusedNodes();
+			
+			update();
+       		d3.select("body").attr("class","");
+		}
+   }
+   
+   function compare(friends1, friends2) {
+	    var count = -1;
+		if (friends1.error || friends2.error)
+			return;
+			
+		count = 0;
+		
+		for (friend1_idx in friends1.data) {
+			var friend1 = friends1.data[friend1_idx];
+			for (friend2_idx in friends2.data) {
+				var friend2 = friends2.data[friend2_idx];
+				if (friend1.id==friend2.id) {
+					count++;
+				}
+			}
+		}
        return count;
    }
    
@@ -138,7 +206,6 @@ line.link {
    }(document, 'script', 'facebook-jssdk'));
 	
 </script>
-<script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 
 var width = 960,
@@ -153,8 +220,8 @@ var force = d3.layout.force()
     .on("tick", tick);
 
 var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
+    .attr("width", "100%")
+    .attr("height", "90%");
 
 var link = svg.selectAll(".link"),
     node = svg.selectAll(".node");
@@ -165,23 +232,42 @@ var link = svg.selectAll(".link"),
 });*/
 
 function update() {
-  var nodes = flatten(root),
-      links = d3.layout.tree().links(nodes);
+  // var nodes = flatten(root),
+      // links = d3.layout.tree().links(nodes);
 
   // Restart the force layout.
   force
       .nodes(nodes)
       .links(links)
+      /*.linkStrength(function(lk) {
+      	return Math.pow(lk.strength/nodes.length, 2);
+      })*/
+      // .linkDistance(40)
+      .charge(-1000)
       .start();
 
+
+
   // Update links.
-  link = link.data(links, function(d) { return d.target.id; });
+  link = link.data(links);
+  console.log(link);
+  
+  console.log(force.links());
 
   link.exit().remove();
 
-  link.enter().insert("line", ".node")
-      .attr("class", "link");
-
+  link.enter().insert("line")//, ".node")
+      .attr("class", "link")
+      // .style("stroke-width", function(lk) {return lk.strength;})
+      .style("stroke",function(lk) {
+      	if(lk.type==="mutualfriends") {
+      		return d3.hsl(180,lk.strength/nodes.length, .3 + .4 * lk.strength/nodes.length);
+      	} else {
+      		return d3.hsl(140,.7, .4);
+      	}
+      	});
+      
+      
   // Update nodes.
   node = node.data(nodes, function(d) { return d.id; });
 
@@ -189,18 +275,20 @@ function update() {
 
   var nodeEnter = node.enter().append("g")
       .attr("class", "node")
-      .on("click", click)
+      // .on("click", click)
       .call(force.drag);
 
   nodeEnter.append("circle")
       .attr("r", function(d) { return Math.sqrt(d.size) / 10 || 4.5; });
 
   nodeEnter.append("text")
-      .attr("dy", ".35em")
-      .text(function(d) { return d.name; });
+      .attr("dy", "1.35em")
+      .text(function(d) { return d.name; })
+      .style("fill","white");
 
   node.select("circle")
       .style("fill", color);
+
 }
 
 function tick() {
@@ -210,6 +298,23 @@ function tick() {
       .attr("y2", function(d) { return d.target.y; });
 
   node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  
+  var maxX = d3.max(node.data(), function(d) {
+  	return d.x;
+  });
+  var minX = d3.min(node.data(), function(d) {
+  	return d.x;
+  });
+  
+  var maxY = d3.max(node.data(), function(d) {
+  	return d.y;
+  });
+  var minY = d3.min(node.data(), function(d) {
+  	return d.y;
+  });
+  
+  svg.attr("viewBox", ""+(minX-20)+" "+(minY-20)+" "+(maxX-minX)*1.1+" "+(maxY-minY)*1.1)
+    .attr("preserveAspectRatio","xMidYMid meet");
 }
 
 function color(d) {
@@ -218,32 +323,6 @@ function color(d) {
       : "#fd8d3c"; // leaf node
 }
 
-// Toggle children on click.
-function click(d) {
-  if (d3.event.defaultPrevented) return; // ignore drag
-  if (d.children) {
-    d._children = d.children;
-    d.children = null;
-  } else {
-    d.children = d._children;
-    d._children = null;
-  }
-  update();
-}
-
-// Returns a list of all nodes under the root.
-function flatten(root) {
-  var nodes = [], i = 0;
-
-  function recurse(node) {
-    if (node.children) node.children.forEach(recurse);
-    if (!node.id) node.id = ++i;
-    nodes.push(node);
-  }
-
-  recurse(root);
-  return nodes;
-}
-
 </script>
+<button onclick="Login();" class="loginButton">Login</button>
 </body>
