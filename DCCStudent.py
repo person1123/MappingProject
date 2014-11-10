@@ -18,7 +18,7 @@ def parseFile(filename):
 
 class DCCStudent(object):
 	"""docstring for DCCStudent"""
-	def __init__(self, firstName, lastName, major1, major2, minor, dccClass, floor, interestList, classesList):
+	def __init__(self, firstName, lastName, floor, dccClass, major1, major2, minor, classesList, interestList, pType):
 		super(DCCStudent, self).__init__()
 		self.firstName = firstName
 		self.lastName = lastName
@@ -28,6 +28,7 @@ class DCCStudent(object):
 		self.floor = floor
 		self.interestList = interestList
 		self.classList = classList
+		self.pType = pType
 
 		if major2 != "noMajor":
 			self.majorList.append(major2)
@@ -175,13 +176,20 @@ class DCCStudent(object):
 
 		return classMatchVal
 
+	# Compares both students' types and returns a value
+	def compareType(self, otherStudent):
+
+		typeMatchVal = 0.0
+
+		if self.pType == otherStudent.pType:
+			typeMatchVal += 1
+
+		return typeMatchVal
+
 	# Compares both students
 	def compareTo(self, otherStudent):
 		
-		matchVal = compareMajor(self, otherStudent)
-		matchVal += compareMinor(self, otherStudent)
-		matchVal += compareInterest(self, otherStudent)
-		matchVal += compareClasses(self, otherStudent)
+		matchVal = compareMajor(self, otherStudent) + compareMinor(self, otherStudent) + compareInterest(self, otherStudent) + compareClasses(self, otherStudent)
 
 		return matchVal
 	
