@@ -1,3 +1,19 @@
+def parseFile(filename):
+	open(filename, "r")
+	
+	for line in file.readlines():
+		sections = line.split("\t")
+		firstName = line[2]
+		lastName = line[3]
+		floor = line[4]
+		dccClass = line[5]
+		majors = line[6]
+		minors = line[7]
+		classesList = line[8]
+		personalityType = line[9]
+		interestList = line[10]
+		elaboration = line[11:]
+
 class DCCStudent(object):
 	"""docstring for DCCStudent"""
 	def __init__(self, firstName, lastName, major1, major2, minor, dccClass, floor, interestList, classesList):
