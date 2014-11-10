@@ -215,7 +215,7 @@ class DCCStudent(object):
 						if otherMinorDesc[1] == majorDesc[1]:
 							minorMatchVal += .5
 		
-		return minorMatchVal
+		return minorMatchVal / (1 + len(self.majorList) + len(otherStudent.majorList))
 
 	# Compares both students' interests and returns a value
 	def compareInterest(self, otherStudent):
