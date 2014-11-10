@@ -33,6 +33,37 @@ for student1 in studentList:
 			
 out.write("\n]}")
 
+parseFile("filename")
+
+out = open("out.json","w")
+out.write('{ "nodes": [')
+
+first = True;
+
+for student in studentList:
+	if (not first):
+		out.write(",")
+	else:
+		first = False
+		out.write("\n")
+	out.write("" + student)
+
+out.write('],\n"links": [')
+
+first = True
+
+for student1 in studentList:
+	for student2 in studentList:
+		if student1 != student2:
+			if (not first):
+				out.write(",\n")
+			else:
+				first = False
+				out.write("\n")
+			out.write(student1.JSONlink(student2))
+			
+out.write("\n]}")
+
 def parseFile(filename):
 	file = open(filename, "r")
 	
