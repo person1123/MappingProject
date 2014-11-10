@@ -192,7 +192,7 @@ class DCCStudent(object):
 				if interest == otherInterest:
 					interestMatchVal += 1
 
-		return interestMatchVal
+		return interestMatchVal / len(self.interestList)
 
 	# Compares both students' classes and returns a value
 	def compareClasses(self, otherStudent):
@@ -205,7 +205,7 @@ class DCCStudent(object):
 				if studentClass == otherClass:
 					classMatchVal += 1
 
-		return classMatchVal
+		return classMatchVal / len(self.classList)
 
 	# Compares both students' types and returns a value
 	def compareType(self, otherStudent):
@@ -226,7 +226,8 @@ class DCCStudent(object):
 	
 	def JSONlink(self, otherStudent):
 		str = '{ "source":' + studentList.index(self) + ', "target":' + studentList.index(otherStudent)
-		str	+= ', "strength":' + self.compareTo(otherStudent) + ', "major":'+self.compareMajor(otherStudent)
-		str += ', "minor":' + self.compareMinor(otherStudent) + ', "interest":'+self.compareInterest(otherStudent)
-		str += ', "classes":' + self.compareClasses(otherStudent) + '}'
+		str	+= ', "strength":' + self.compareTo(otherStudent) + ', "majors":'+self.compareMajor(otherStudent)
+		str += ', "minors":' + self.compareMinor(otherStudent) + ', "interests":'+self.compareInterest(otherStudent)
+		str += ', "classes":' + self.compareClasses(otherStudent) +', "pType":' + self.compareType(otherStudent)
+		str += ', "type":"survey"}'
 		
