@@ -1,7 +1,38 @@
 studentList= []
 
+parseFile("filename")
+
+out = open("out.json","w")
+out.write('{ "nodes": [')
+
+first = True;
+
+for student in studentList:
+	if (not first):
+		out.write(",")
+	else:
+		first = False
+		out.write("\n")
+	out.write("" + student)
+
+out.write('],\n"links": [')
+
+first = True
+
+for student1 in studentList:
+	for student2 in studentList:
+		if student1 != student2:
+			if (not first):
+				out.write(",\n")
+			else:
+				first = False
+				out.write("\n")
+			out.write(student1.JSONlink(student2))
+			
+out.write("\n]}")
+
 def parseFile(filename):
-	open(filename, "r")
+	file = open(filename, "r")
 	
 	for line in file.readlines():
 		sections = line.split("\t")
@@ -194,8 +225,8 @@ class DCCStudent(object):
 		return matchVal
 	
 	def JSONlink(self, otherStudent):
-		str = "{ source:" + studentList.index(self) + ", target:" + studentList.index(otherStudent)
-		str	+= ", strength:" + self.compareTo(otherStudent) + ", major:"+self.compareMajor(otherStudent)
-		str += ", minor:" + self.compareMinor(otherStudent) + ", interest:"+self.compareInterest(otherStudent)
-		str += ", classes:" + self.compareClasses(otherStudent) + "}"
+		str = '{ "source":' + studentList.index(self) + ', "target":' + studentList.index(otherStudent)
+		str	+= ', "strength":' + self.compareTo(otherStudent) + ', "major":'+self.compareMajor(otherStudent)
+		str += ', "minor":' + self.compareMinor(otherStudent) + ', "interest":'+self.compareInterest(otherStudent)
+		str += ', "classes":' + self.compareClasses(otherStudent) + '}'
 		
