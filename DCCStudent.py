@@ -1,37 +1,42 @@
-studentList= []
+import majorDict
+
+studentList = []
 
 def parseFile(filename):
 	open(filename, "r")
 	
 	for line in file.readlines():
 		sections = line.split("\t")
-		firstName = line[2]
-		lastName = line[3]
-		floor = line[4]
-		dccClass = line[5]
-		majors = line[6]
-		minors = line[7]
-		classesList = line[8]
-		personalityType = line[9]
-		interestList = line[10]
-		elaboration = line[11:]
+
+		firstName = sections[2]
+		lastName = sections[3]
+		floor = sections[4]
+		dccClass = sections[5]
+		majors = sections[6]
+		minors = sections[7]
+		classesList = sections[8]
+		personalityType = sections[9]
+		interestList = sections[10]
+		elaboration = sections[11:]
+
+		majorList = majors.split(", ")
+
+		studentList.append(DCCStudent(firstName, lastName, floor, dccClass, majors, minor, classesList, personalityType, interestList, elaborations))
 
 class DCCStudent(object):
 	"""docstring for DCCStudent"""
-	def __init__(self, firstName, lastName, floor, dccClass, major1, major2, minor, classesList, interestList, pType):
+	def __init__(self, firstName, lastName, floor, dccClass, majorList, minor, classesList, pType, interestList, elaboration):
 		super(DCCStudent, self).__init__()
 		self.firstName = firstName
 		self.lastName = lastName
-		self.majorList = [major1]
+		self.majorList = majorList
 		self.minor = minor
 		self.dccClass = dccClass
 		self.floor = floor
 		self.interestList = interestList
 		self.classList = classList
 		self.pType = pType
-
-		if major2 != "noMajor":
-			self.majorList.append(major2)
+		self.elaboration = elaboration
 
 	def getMajorList(self):
 		# returns a list containing all of the student's majors
@@ -140,7 +145,7 @@ class DCCStudent(object):
 
 					# Triggers if otherStudent's minor and Student's major are in the same college/department
 					if otherMinorDesc[0] == majorDesc[0]:
-						minorMatchVal += 075
+						minorMatchVal += 0.75
 
 					else:
 
@@ -189,7 +194,8 @@ class DCCStudent(object):
 	# Compares both students
 	def compareTo(self, otherStudent):
 		
-		matchVal = compareMajor(self, otherStudent) + compareMinor(self, otherStudent) + compareInterest(self, otherStudent) + compareClasses(self, otherStudent)
+		matchVal = compareMajor(self, otherStudent) + compareMinor(self, otherStudent) + compareInterest(self, otherStudent)
+		matchVal += compareClasses(self, otherStudent) + compareType(self, otherStudent)
 
 		return matchVal
 	
@@ -197,5 +203,10 @@ class DCCStudent(object):
 		str = "{ source:" + studentList.index(self) + ", target:" + studentList.index(otherStudent)
 		str	+= ", strength:" + self.compareTo(otherStudent) + ", major:"+self.compareMajor(otherStudent)
 		str += ", minor:" + self.compareMinor(otherStudent) + ", interest:"+self.compareInterest(otherStudent)
-		str += ", classes:" + self.compareClasses(otherStudent) + "}"
+		str += ", classes:" + self.compareClasses(otherStudent) + ", types:"+self.compareType(otherStudent) + "}"
+
+	def __str__(self):
+		str = '{"name":' + self.firstName + ' ' + self.lastName + ', "floor":' + self.floor + ', "DCCclass":' + self.dccClass
+		str += ', "majors":' + ' '.join(self.majorList) + ', "minor":' + self.minor + ', "classes":' + ' '.join(self.classList)
+		str += ', "pType":' + self.pType + ', "interests":' + ' '.join(self.interestList) + ', "elaboration":' + ' '.join(self.elaboration) + '}'
 		
