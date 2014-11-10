@@ -2,92 +2,38 @@ import majorDict
 
 studentList = []
 
-parseFile("filename")
+md = majorDict.getMajorDict()
 
-out = open("out.json","w")
-out.write('{ "nodes": [')
-
-first = True;
-
-for student in studentList:
-	if (not first):
-		out.write(",")
-	else:
-		first = False
-		out.write("\n")
-	out.write("" + student)
-
-out.write('],\n"links": [')
-
-first = True
-
-for student1 in studentList:
-	for student2 in studentList:
-		if student1 != student2:
-			if (not first):
-				out.write(",\n")
-			else:
-				first = False
-				out.write("\n")
-			out.write(student1.JSONlink(student2))
-			
-out.write("\n]}")
-
-parseFile("filename")
-
-out = open("out.json","w")
-out.write('{ "nodes": [')
-
-first = True;
-
-for student in studentList:
-	if (not first):
-		out.write(",")
-	else:
-		first = False
-		out.write("\n")
-	out.write("" + student)
-
-out.write('],\n"links": [')
-
-first = True
-
-for student1 in studentList:
-	for student2 in studentList:
-		if student1 != student2:
-			if (not first):
-				out.write(",\n")
-			else:
-				first = False
-				out.write("\n")
-			out.write(student1.JSONlink(student2))
-			
-out.write("\n]}")
 
 def parseFile(filename):
 	file = open(filename, "r")
 	
+	first = True
+	
 	for line in file.readlines():
-		sections = line.split("\t")
-
-		firstName = sections[2]
-		lastName = sections[3]
-		floor = sections[4]
-		dccClass = sections[5]
-		majors = sections[6]
-		minors = sections[7]
-		classesList = sections[8]
-		personalityType = sections[9]
-		interestList = sections[10]
-		elaboration = sections[11:]
-
-		majorList = majors.split(", ")
-
-		studentList.append(DCCStudent(firstName, lastName, floor, dccClass, majors, minor, classesList, personalityType, interestList, elaborations))
+		if first:
+			first = False
+		else:
+			sections = line.split("\t")
+	
+			firstName = sections[1]
+			lastName = sections[2]
+			floor = sections[3]
+			dccClass = sections[4]
+			majors = sections[5].lower()
+			minor = sections[6].lower()
+			classesList = sections[7]
+			personalityType = sections[8]
+			interestList = sections[9]
+			elaborations = sections[10:]
+	
+			majorList = majors.split(", ")
+	
+			studentList.append(DCCStudent(firstName, lastName, floor, dccClass, majorList, minor, classesList, personalityType, interestList, elaborations))
 
 class DCCStudent(object):
 	"""docstring for DCCStudent"""
-	def __init__(self, firstName, lastName, floor, dccClass, majorList, minor, classesList, pType, interestList, elaboration):
+	def __init__(self, firstName, lastName, floor, dccClass, majorList, minor, classList, pType, interestList, elaboration):
 		super(DCCStudent, self).__init__()
 		self.firstName = firstName
 		self.lastName = lastName
@@ -135,8 +81,8 @@ class DCCStudent(object):
 		for major in self.majorList:
 			for otherMajor in otherStudent.getMajorList():
 				
-				majorDesc = majorDict[major]
-				otherMajorDesc = majorDict[otherMajor]
+				majorDesc = md[major]
+				otherMajorDesc = md[otherMajor]
 
 				# Triggers if both majors are the same
 				if major == otherMajor:
@@ -154,7 +100,7 @@ class DCCStudent(object):
 						if majorDesc[1] == otherMajorDesc[1]:
 							majorMatchVal += 1
 
-		return majorMatchVal
+		return majorMatchVal / (2 * len(self.majorList) * len(otherStudent.majorList))
 
 	# Compares both students' minors and returns a value.
 	def compareMinor(self, otherStudent):
@@ -163,12 +109,12 @@ class DCCStudent(object):
 
 		# Triggers if student has a minor
 		if self.minor != "NMD":
-			minorDesc = majorDict[self.minor]
+			minorDesc = md[self.minor]
 
 			# Iterates through otherStudent's majors and their descriptions
 			for otherMajor in otherStudent.getMajorList():
 
-				otherMajorDesc = majorDict[otherMajor]
+				otherMajorDesc = md[otherMajor]
 
 				# Triggers if minor and otherStudent's major are the same
 				if minor == otherMajor:
@@ -192,12 +138,12 @@ class DCCStudent(object):
 
 		# Triggers if otherStudent has a minor
 		if otherStudent.getMinor() != "NMD":
-			otherMinorDesc = majorDict[otherStudent.getMinor()]
+			otherMinorDesc = md[otherStudent.getMinor()]
 
 			# Iterates through Student's majors and their descriptions
 			for major in self.majorList:
 
-				majorDesc = majorDict[major]
+				majorDesc = md[major]
 
 				# Triggers if otherStudent's minor and Student's major are the same
 				if otherMinor == major:
@@ -215,7 +161,7 @@ class DCCStudent(object):
 						if otherMinorDesc[1] == majorDesc[1]:
 							minorMatchVal += .5
 		
-		return minorMatchVal
+		return minorMatchVal / (1 + len(self.majorList) + len(otherStudent.majorList))
 
 	# Compares both students' interests and returns a value
 	def compareInterest(self, otherStudent):
@@ -225,7 +171,7 @@ class DCCStudent(object):
 		for interest in self.interestList:
 			for otherInterest in otherStudent.getInterestList():
 				
-				if interest == otherInterest:
+				if interest.lower() == otherInterest.lower():
 					interestMatchVal += 1
 
 		return interestMatchVal / len(self.interestList)
@@ -238,7 +184,7 @@ class DCCStudent(object):
 		for studentClass in self.classList:
 			for otherClass in otherStudent.getClassList():
 				
-				if studentClass == otherClass:
+				if studentClass.lower() == otherClass.lower():
 					classMatchVal += 1
 
 		return classMatchVal / len(self.classList)
@@ -256,20 +202,85 @@ class DCCStudent(object):
 	# Compares both students
 	def compareTo(self, otherStudent):
 		
-		matchVal = compareMajor(self, otherStudent) + compareMinor(self, otherStudent) + compareInterest(self, otherStudent)
-		matchVal += compareClasses(self, otherStudent) + compareType(self, otherStudent)
+		matchVal = self.compareMajor(otherStudent) + self.compareMinor(otherStudent) + self.compareInterest(otherStudent)
+		matchVal += self.compareClasses(otherStudent) + self.compareType(otherStudent)
 
 		return matchVal
 	
 	def JSONlink(self, otherStudent):
-		str = '{ "source":' + studentList.index(self) + ', "target":' + studentList.index(otherStudent)
-		str	+= ', "strength":' + self.compareTo(otherStudent) + ', "majors":'+self.compareMajor(otherStudent)
-		str += ', "minors":' + self.compareMinor(otherStudent) + ', "interests":'+self.compareInterest(otherStudent)
-		str += ', "classes":' + self.compareClasses(otherStudent) +', "pType":' + self.compareType(otherStudent)
-		str += ', "type":"survey"}'
+		ret = '{ "source":' + str(studentList.index(self)) + ', "target":' + str(studentList.index(otherStudent))
+		ret	+= ', "strength":' + str(self.compareTo(otherStudent)) + ', "majors":'+str(self.compareMajor(otherStudent))
+		ret += ', "minors":' + str(self.compareMinor(otherStudent)) + ', "interests":'+str(self.compareInterest(otherStudent))
+		ret += ', "classes":' + str(self.compareClasses(otherStudent)) +', "pType":' + str(self.compareType(otherStudent))
+		ret += ', "type":"survey"}'
+
+		return ret
 
 	def __str__(self):
-		str = '{"name":' + self.firstName + ' ' + self.lastName + ', "floor":' + self.floor + ', "DCCclass":' + self.dccClass
-		str += ', "majors":' + ' '.join(self.majorList) + ', "minor":' + self.minor + ', "classes":' + ' '.join(self.classList)
-		str += ', "pType":' + self.pType + ', "interests":' + ' '.join(self.interestList) + ', "elaboration":' + ' '.join(self.elaboration) + '}'
+		ret = '{"name":"' + self.firstName + ' ' + self.lastName + '", "floor":"' + self.floor + '", "DCCclass":"' + self.dccClass
+		ret += '", "majors":"' + ' '.join(self.majorList) + '", "minor":"' + self.minor + '", "classes":"' + ' '.join(self.classList)
+		ret += '", "pType":"' + self.pType + '", "interests":"' + ' '.join(self.interestList) + '", "elaboration":"' + ' '.join(self.elaboration) + '"}'
 		
+		return ret
+	
+
+parseFile("response.txt")
+
+out = open("out.json","w")
+out.write('{ "nodes": [')
+
+first = True;	
+for student in studentList:
+	if (not first):
+		out.write(",")
+	else:
+		first = False
+		out.write("\n")
+	out.write(str(student))
+
+out.write('],\n"links": [')
+
+first = True
+
+for student1 in studentList:
+	for student2 in studentList:
+		if student1 != student2:
+			if (not first):
+				out.write(",\n")
+			else:
+				first = False
+				out.write("\n")
+			out.write(student1.JSONlink(student2))
+			
+out.write("\n]}")
+
+parseFile("filename")
+
+out = open("out.json","w")
+out.write('{ "nodes": [')
+
+first = True;
+
+for student in studentList:
+	if (not first):
+		out.write(",")
+	else:
+		first = False
+		out.write("\n")
+	out.write("" + student)
+
+out.write('],\n"links": [')
+
+first = True
+
+for student1 in studentList:
+	for student2 in studentList:
+		if student1 != student2:
+			if (not first):
+				out.write(",\n")
+			else:
+				first = False
+				out.write("\n")
+			out.write(student1.JSONlink(student2))
+			
+out.write("\n]}")
